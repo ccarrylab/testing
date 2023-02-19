@@ -96,7 +96,7 @@ resource "aws_connect_hours_of_operation" "connect_hours_of_operation" {
       Day = "FRIDAY"
       StartTime = {
         Hours = 8
-		 Minutes = 0
+	Minutes = 0
       }
       EndTime = {
         Hours = 17
