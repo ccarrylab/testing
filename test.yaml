@@ -1,0 +1,393 @@
+// Cloning Terraform src code to /tmp/terraform_src...
+ code has been checked out.
+
+data "aws_caller_identity" "current" {}
+
+data "aws_region" "current" {}
+
+resource "aws_connect_instance" "connect_instance" {
+  identity_management_type = "SAML"
+  instance_alias = "gts-gold-tier"
+  directory_id = "REPLACEME"
+  // CF Property(Attributes) = {
+  //   AutoResolveBestVoices = True
+  //   ContactflowLogs = True
+  //   ContactLens = True
+  //   EarlyMedia = True
+  //   InboundCalls = True
+  //   OutboundCalls = True
+  //   UseCustomTTSVoices = False
+  // }
+}
+
+resource "aws_ec2_transit_gateway_multicast_domain" "customer_profiles_domain" {
+  // CF Property(DomainName) = "amazon-connect-gts-gold-tier"
+  // CF Property(DefaultExpirationDays) = 366
+}
+
+resource "aws_customer_gateway" "customer_profiles_integration" {
+  type = "CTR"
+  // CF Property(DomainName) = aws_ec2_transit_gateway_multicast_domain.customer_profiles_domain.id
+  // CF Property(Uri) = aws_connect_instance.connect_instance.arn
+}
+
+resource "aws_connect_quick_connect" "connect_quick_connect" {
+  name = "Telephonic Signature"
+  instance_id = aws_connect_instance.connect_instance.arn
+  quick_connect_config = {
+    QuickConnectType = "QUEUE"
+    QueueConfig = {
+      QueueArn = "arn:aws:connect:${data.aws_region.current.name}:${data.aws_caller_identity.current.account_id}:instance/${aws_connect_instance.connect_instance.id}/queue/3b1eb819-4a96-4269-9c24-5632560d6cf8"      ContactFlowArn = "arn:aws:connect:${data.aws_region.current.name}:${data.aws_caller_identity.current.account_id}:instance/${aws_connect_instance.connect_instance.id}/contact-flow/c9b163af-2764-48c3-9754-7687df4e0f42"
+    }
+  }
+}
+
+resource "aws_connect_hours_of_operation" "connect_hours_of_operation" {
+  name = "GTS Hours of Operations"
+  description = ""
+  instance_id = aws_connect_instance.connect_instance.arn
+   time_zone = "US/Pacific"
+  config = [
+    {
+      Day = "TUESDAY"
+      StartTime = {
+        Hours = 8
+        Minutes = 0
+      }
+      EndTime = {
+        Hours = 17
+        Minutes = 0
+      }
+    },
+    {
+      Day = "WEDNESDAY"
+      StartTime = {
+        Hours = 8
+        Minutes = 0
+      }
+      EndTime = {
+        Hours = 17
+        Minutes = 0
+      }
+    },
+    {
+      Day = "MONDAY"
+      StartTime = {
+        Hours = 8
+        Minutes = 0
+      }
+      EndTime = {
+        Hours = 17
+        Minutes = 0
+      }
+    },
+    {
+      Day = "THURSDAY"
+      StartTime = {
+        Hours = 8
+        Minutes = 0
+      }
+      EndTime = {
+        Hours = 17
+        Minutes = 0
+      }
+    },
+    {
+      Day = "FRIDAY"
+      StartTime = {
+        Hours = 8
+		 Minutes = 0
+      }
+      EndTime = {
+        Hours = 17
+        Minutes = 0
+      }
+    }
+  ]
+}
+
+resource "aws_connect_hours_of_operation" "connect_hours_of_operation2" {
+  name = "Basic Hours"
+  description = "Always open hours"
+  instance_id = aws_connect_instance.connect_instance.arn
+  time_zone = "America/New_York"
+  config = [
+    {
+      Day = "MONDAY"
+      StartTime = {
+        Hours = 0
+        Minutes = 0
+      }
+      EndTime = {
+        Hours = 0
+        Minutes = 0
+      }
+    },
+    {
+      Day = "SATURDAY"
+      StartTime = {
+        Hours = 0
+        Minutes = 0
+      }
+      EndTime = {
+        Hours = 0
+        Minutes = 0
+      }
+    },
+    {
+      Day = "TUESDAY"
+      StartTime = {
+        Hours = 0
+        Minutes = 0
+      }
+      EndTime = {
+        Hours = 0
+        Minutes = 0
+      }
+    },
+    {
+	Day = "THURSDAY"
+      StartTime = {
+        Hours = 0
+        Minutes = 0
+      }
+      EndTime = {
+        Hours = 0
+        Minutes = 0
+      }
+    },
+    {
+      Day = "WEDNESDAY"
+      StartTime = {
+        Hours = 0
+        Minutes = 0
+      }
+      EndTime = {
+        Hours = 0
+        Minutes = 0
+      }
+    },
+    {
+      Day = "FRIDAY"
+      StartTime = {
+        Hours = 0
+        Minutes = 0
+      }
+      EndTime = {
+        Hours = 0
+        Minutes = 0
+      }
+    },
+    {
+      Day = "SUNDAY"
+      StartTime = {
+        Hours = 0
+        Minutes = 0
+      }
+      EndTime = {
+        Hours = 0
+        Minutes = 0
+      }
+    }
+  ]
+}
+
+resource "aws_connect_user" "connect_user" {
+  name = "testuser13@gts.com"
+  identity_info = {
+    FirstName = "Test"
+	LastName = "User13"
+  }
+  instance_id = aws_connect_instance.connect_instance.arn
+  phone_config = {
+    PhoneType = "SOFT_PHONE"
+    AutoAccept = False
+    AfterContactWorkTimeLimit = 30
+    DeskPhoneNumber = ""
+  }
+  security_profile_ids = [
+    "da0a61c8-fd10-4db7-bf12-4aabb3e961f3"
+  ]
+  routing_profile_id = "f35c6964-1f70-4ff1-a84d-16edae01771d"
+  password = "REPLACEME"
+}
+
+resource "aws_connect_user" "connect_user2" {
+  name = "testuser3@gts.com"
+  identity_info = {
+    FirstName = "Test"
+    LastName = "User3"
+  }
+  instance_id = aws_connect_instance.connect_instance.arn
+  phone_config = {
+    PhoneType = "SOFT_PHONE"
+    AutoAccept = False
+    AfterContactWorkTimeLimit = 30
+    DeskPhoneNumber = ""
+  }
+  security_profile_ids = [
+    "da0a61c8-fd10-4db7-bf12-4aabb3e961f3"
+  ]
+  routing_profile_id = "f35c6964-1f70-4ff1-a84d-16edae01771d"
+  password = "REPLACEME"
+}
+
+resource "aws_connect_user" "connect_user3" {
+  name = "testuser21@gts.com"
+  identity_info = {
+    FirstName = "Test"
+    LastName = "User21"
+  }
+  instance_id = aws_connect_instance.connect_instance.arn
+  phone_config = {
+    PhoneType = "SOFT_PHONE"
+    AutoAccept = False
+    AfterContactWorkTimeLimit = 30
+    DeskPhoneNumber = ""
+  }
+  security_profile_ids = [
+  "da0a61c8-fd10-4db7-bf12-4aabb3e961f3"
+  ]
+  routing_profile_id = "f35c6964-1f70-4ff1-a84d-16edae01771d"
+  password = "REPLACEME"
+}
+
+resource "aws_connect_user" "connect_user4" {
+  name = "testuser11@gts.com"
+  identity_info = {
+    FirstName = "Test"
+    LastName = "User11"
+  }
+  instance_id = aws_connect_instance.connect_instance.arn
+  phone_config = {
+    PhoneType = "SOFT_PHONE"
+    AutoAccept = False
+    AfterContactWorkTimeLimit = 30
+    DeskPhoneNumber = ""
+  }
+  security_profile_ids = [
+    "da0a61c8-fd10-4db7-bf12-4aabb3e961f3"
+  ]
+  routing_profile_id = "f35c6964-1f70-4ff1-a84d-16edae01771d"
+  password = "REPLACEME"
+}
+
+resource "aws_connect_user" "connect_user5" {
+  name = "testuser19@gts.com"
+  identity_info = {
+    FirstName = "Test"
+    LastName = "User19"
+  }
+  instance_id = aws_connect_instance.connect_instance.arn
+  phone_config = {
+    PhoneType = "SOFT_PHONE"
+    AutoAccept = False
+    AfterContactWorkTimeLimit = 30
+    DeskPhoneNumber = ""
+  }
+  security_profile_ids = [
+    "da0a61c8-fd10-4db7-bf12-4aabb3e961f3"
+  ]
+  routing_profile_id = "f35c6964-1f70-4ff1-a84d-16edae01771d"
+  password = "REPLACEME"
+}
+
+resource "aws_connect_user" "connect_user6" {
+  name = "testuser16@gts.com"
+  identity_info = {
+    FirstName = "Test"
+	LastName = "User16"
+  }
+  instance_id = aws_connect_instance.connect_instance.arn
+  phone_config = {
+    PhoneType = "SOFT_PHONE"
+    AutoAccept = False
+    AfterContactWorkTimeLimit = 30
+    DeskPhoneNumber = ""
+  }
+  security_profile_ids = [
+    "da0a61c8-fd10-4db7-bf12-4aabb3e961f3"
+  ]
+  routing_profile_id = "f35c6964-1f70-4ff1-a84d-16edae01771d"
+  password = "REPLACEME"
+}
+
+resource "aws_connect_user" "connect_user7" {
+  name = "testuser4@gts.com"
+  identity_info = {
+    FirstName = "Test"
+    LastName = "User4"
+  }
+  instance_id = aws_connect_instance.connect_instance.arn
+  phone_config = {
+    PhoneType = "SOFT_PHONE"
+    AutoAccept = False
+    AfterContactWorkTimeLimit = 30
+    DeskPhoneNumber = ""
+  }
+  security_profile_ids = [
+    "da0a61c8-fd10-4db7-bf12-4aabb3e961f3"
+  ]
+  routing_profile_id = "f35c6964-1f70-4ff1-a84d-16edae01771d"
+  password = "REPLACEME"
+}
+
+resource "aws_connect_user" "connect_user8" {
+  name = "testuser2@gts.com"
+  identity_info = {
+    FirstName = "Test"
+    LastName = "User2"
+  }
+  instance_id = aws_connect_instance.connect_instance.arn
+  phone_config = {
+    PhoneType = "SOFT_PHONE"
+    AutoAccept = False
+    AfterContactWorkTimeLimit = 30
+    DeskPhoneNumber = ""
+  }
+  security_profile_ids = [
+    "da0a61c8-fd10-4db7-bf12-4aabb3e961f3"
+  ]
+  routing_profile_id = "f35c6964-1f70-4ff1-a84d-16edae01771d"
+  password = "REPLACEME"
+}
+
+resource "aws_connect_user" "connect_user9" {
+  name = "testuser15@gts.com"
+  identity_info = {
+    FirstName = "Test"
+    LastName = "User15"
+  }
+  instance_id = aws_connect_instance.connect_instance.arn
+  phone_config = {
+    PhoneType = "SOFT_PHONE"
+    AutoAccept = False
+    AfterContactWorkTimeLimit = 30
+    DeskPhoneNumber = ""
+  }
+  security_profile_ids = [
+    "da0a61c8-fd10-4db7-bf12-4aabb3e961f3"
+  ]
+  routing_profile_id = "f35c6964-1f70-4ff1-a84d-16edae01771d"
+  password = "REPLACEME"
+}
+
+resource "aws_connect_user" "connect_user10" {
+  name = "testuser24@gts.com"
+  identity_info = {
+    FirstName = "Test"
+    LastName = "User24"
+  }
+  instance_id = aws_connect_instance.connect_instance.arn
+  phone_config = {
+    PhoneType = "SOFT_PHONE"
+    AutoAccept = False
+    AfterContactWorkTimeLimit = 30
+    DeskPhoneNumber = ""
+  }
+  security_profile_ids = [
+    "da0a61c8-fd10-4db7-bf12-4aabb3e961f3"
+  ]
+  routing_profile_id = "f35c6964-1f70-4ff1-a84d-16edae01771d"
+  password = "REPLACEME"
+}
